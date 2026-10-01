@@ -206,8 +206,10 @@ def calc_landed(market_key, mode_key, fob, qty, container_cost):
 
 def render_report(matrix, cost, params):
     L = []
-    L.append("# %s %s · 出海合规差距报告" % (matrix["flag"], matrix["market"]))
+    L.append("# %s %s · 出海合规体检报告" % (matrix["flag"], matrix["market"]))
     L.append("")
+    if str(params.get("brand") or "").strip():
+        L.append("> 委托方品牌：%s" % str(params["brand"]).strip()[:40])
     L.append("> 车型：%s　运输模式：%s　数量：%s 台" % (matrix["veh"], cost["mode"], cost["qty"]))
     L.append("- **生成日期**：%s" % time.strftime("%Y-%m-%d"))
     L.append("- **合规最短板**：并行推进下仍需约 **%s 周**（最长单项决定整车上市时间）" % matrix["total_weeks"])
@@ -235,6 +237,53 @@ def render_report(matrix, cost, params):
     L.append("---")
     L.append("*出海合规罗盘 ExportCompass · 认证要求数据锚定2025-2026公开信源，具体以认证机构与目标国官方最新公告为准*")
     return "\n".join(L)
+
+
+def render_docx(matrix, cost, brand, pid):
+    """品牌定制 Word 体检报告（python-docx 可选依赖，缺失降级 None）"""
+    try:
+        from docx import Document
+    except ImportError:
+        return None
+    doc = Document()
+    doc.add_heading("%s %s · 出海合规体检报告" % (matrix["flag"], matrix["market"]), 0)
+    info = "车型：%s    运输模式：%s    数量：%s 台    生成日期：%s" % (
+        matrix["veh"], cost["mode"], cost["qty"], time.strftime("%Y-%m-%d"))
+    if brand:
+        doc.add_paragraph("委托方品牌：%s" % brand)
+    doc.add_paragraph(info)
+    doc.add_heading("一、合规最短板", 1)
+    doc.add_paragraph("并行推进下仍需约 %s 周（最长单项决定整车上市时间）" % matrix["total_weeks"])
+    doc.add_heading("二、强制认证清单（缺一不可）", 1)
+    t = doc.add_table(rows=1, cols=3)
+    t.style = "Table Grid"
+    hdr = t.rows[0].cells
+    hdr[0].text = "认证/要求"
+    hdr[1].text = "主管机构"
+    hdr[2].text = "周期(周)"
+    for r in matrix["reqs"]:
+        row = t.add_row().cells
+        row[0].text = r[0]
+        row[1].text = r[1]
+        row[2].text = str(r[3])
+    doc.add_heading("三、落地成本测算（%s）" % cost["mode"], 1)
+    for line in [
+        "FOB 单价：$%s × %s 台" % (cost["fob"], cost["qty"]),
+        "关税区间：%s%% ~ %s%%" % (cost["duty_lo"], cost["duty_hi"]),
+        "预计用柜：%s 柜 · 单台海运分摊 ≈ $%s" % (cost["ctns"], cost["freight_unit"]),
+        "单台落地成本区间：$%s ~ $%s" % (cost["landed_lo"], cost["landed_hi"]),
+    ]:
+        doc.add_paragraph(line)
+    if cost["vs_cbu_save_pct"]:
+        doc.add_paragraph("对比 CBU 整车模式：每台约省 $%s（-%s%%）" % (
+            cost["vs_cbu_save_unit"], cost["vs_cbu_save_pct"]))
+    doc.add_heading("四、问 AI 的合规问题清单", 1)
+    for i, q in enumerate(matrix["ai_questions"], 1):
+        doc.add_paragraph("%d. %s" % (i, q))
+    doc.add_paragraph("出海合规罗盘 ExportCompass · 认证要求锚定2025-2026公开信源，申报以认证机构与目标国官方最新公告为准")
+    out = os.path.join(OUT_DIR, pid + ".docx")
+    doc.save(out)
+    return out
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -272,6 +321,14 @@ class Handler(BaseHTTPRequestHandler):
                 with open(fp, "rb") as f:
                     return self._send(200, f.read(), "text/markdown; charset=utf-8",
                                       {"Content-Disposition": "attachment; filename=compass.md"})
+        m = re.match(r"^/download/([0-9a-f-]{36})\.docx$", path)
+        if m:
+            fp = os.path.join(OUT_DIR, m.group(1) + ".docx")
+            if os.path.exists(fp):
+                with open(fp, "rb") as f:
+                    return self._send(200, f.read(),
+                                      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                      {"Content-Disposition": "attachment; filename=compass-report.docx"})
         return self._send(404, "not found", "text/plain")
 
     def do_POST(self):
@@ -299,6 +356,8 @@ class Handler(BaseHTTPRequestHandler):
                                   "application/json; charset=utf-8")
             pid = str(uuid.uuid4())
             report = render_report(matrix, cost, data)
+            brand = str(data.get("brand") or "").strip()[:40]
+            docx_path = render_docx(matrix, cost, brand, pid)
             with open(os.path.join(OUT_DIR, pid + ".md"), "w", encoding="utf-8") as f:
                 f.write(report)
             with open(os.path.join(DATA_DIR, pid + ".json"), "w", encoding="utf-8") as f:
@@ -307,7 +366,8 @@ class Handler(BaseHTTPRequestHandler):
                           f, ensure_ascii=False, indent=1)
             return self._send(200, json.dumps({"ok": True, "id": pid, "matrix": matrix,
                                                "cost": cost, "report": report,
-                                               "download": "/download/%s.md" % pid},
+                                               "download": "/download/%s.md" % pid,
+                                               "docx": ("/download/%s.docx" % pid) if docx_path else None},
                                               ensure_ascii=False),
                               "application/json; charset=utf-8")
         except Exception as e:

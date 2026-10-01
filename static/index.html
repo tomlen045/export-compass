@@ -70,6 +70,7 @@ td:first-child{color:var(--tx);font-weight:600}
   <div class="sec"><h2>③ 出口模式与商务参数</h2>
     <div class="row" id="modes"></div>
     <div class="row">
+      <span class="lbl">品牌(可选)</span><input class="num" id="brand" type="text" placeholder="委托方品牌" style="width:150px">
       <span class="lbl">FOB单价$</span><input class="num" id="fob" type="number" value="1200" min="1">
       <span class="lbl">数量(台)</span><input class="num" id="qty" type="number" value="200" min="1">
       <span class="lbl">整柜运费$</span><input class="num" id="ctn" type="number" value="3000" min="0">
@@ -109,7 +110,7 @@ async function go(){
   const btn=document.querySelector('.gen');btn.textContent='体检中…';btn.disabled=true;
   try{
     const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({market:mkt,veh:veh,mode:mode,
+      body:JSON.stringify({market:mkt,veh:veh,mode:mode,brand:document.getElementById('brand').value,
         fob:parseFloat(document.getElementById('fob').value||'0'),
         qty:parseInt(document.getElementById('qty').value||'0'),
         container_cost:parseFloat(document.getElementById('ctn').value||'0')})});
@@ -127,7 +128,9 @@ function draw(d){
   h+='<div class="panel"><h3>🧭 市场画像</h3><p style="font-size:14px;line-height:2">'
    +mx.flag+' <b style="color:var(--acc)">'+esc(mx.market)+'</b>（'+esc(mx.tier)+'）· 车型：'+esc(mx.veh)+'<br>'
    +'合规最短板：并行推进仍需 <b class="money">'+mx.total_weeks+'</b> 周（最长单项决定上市时间）</p>'
-   +'<a class="dl" href="'+d.download+'" download>⬇ 下载完整报告 .md</a></div>';
+   +'<a class="dl" href="'+d.download+'" download>⬇ 下载完整报告 .md</a>'
+   +(d.docx?' <a class="dl" style="color:var(--warn);border-color:var(--warn)" href="'+d.docx+'" download>⬇ 下载 Word 体检报告</a>':'')
+   +'</div>';
   h+='<div class="panel"><h3>🛂 强制认证清单（缺一不可）</h3><table><tr><th>认证</th><th>主管机构</th><th>要点</th><th>周期</th></tr>';
   mx.reqs.forEach(r=>{h+='<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td class="wk">'+r[3]+'周</td></tr>';});
   h+='</table></div>';
