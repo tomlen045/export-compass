@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出海合规罗盘 ExportCompass · 二轮车出口认证雷达</title>
+<style>
+:root{--bg:#0a0f1a;--card:#111827;--line:#1f2a3d;--tx:#e5edf7;--dim:#8ba0b8;--acc:#2dd4a7;--warn:#ffb02e;--red:#ff5a5a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+ background-image:linear-gradient(rgba(45,212,167,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(45,212,167,.03) 1px,transparent 1px);
+ background-size:36px 36px;min-height:100vh;padding:32px 16px}
+.wrap{max-width:960px;margin:0 auto}
+.badge{display:inline-block;border:1px solid var(--acc);color:var(--acc);font-size:12px;padding:3px 10px;border-radius:99px;letter-spacing:2px}
+h1{font-size:34px;margin:14px 0 6px}
+h1 .glow{color:var(--acc);text-shadow:0 0 18px rgba(45,212,167,.5)}
+.sub{color:var(--dim);font-size:15px;line-height:1.7}
+.stats{display:flex;gap:12px;margin:22px 0}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat b{display:block;font-size:26px;color:var(--acc);text-shadow:0 0 12px rgba(45,212,167,.35)}
+.stat span{font-size:12px;color:var(--dim)}
+.sec{margin-top:26px}
+.sec h2{font-size:15px;color:var(--dim);letter-spacing:3px;margin-bottom:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.mc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;transition:.15s}
+.mc:hover{border-color:var(--acc)}
+.mc.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 8px 24px rgba(45,212,167,.12)}
+.mc b{font-size:15px}
+.mc p{font-size:12px;color:var(--dim);margin-top:6px}
+.mc .tier{margin-top:8px;font-size:11px;color:var(--acc)}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--dim)}
+.chip.on{border-color:var(--acc);color:var(--acc)}
+.chip:hover{border-color:var(--acc)}
+.num{background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:8px 12px;width:130px;font-size:14px}
+.lbl{color:var(--dim);font-size:13px}
+.gen{margin-top:26px;width:100%;padding:16px;font-size:17px;font-weight:700;letter-spacing:4px;
+ background:linear-gradient(135deg,#2dd4a7,#1a9e78);color:#04211a;border:none;border-radius:14px;cursor:pointer}
+#out{margin-top:26px;display:none}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+.panel h3{font-size:14px;color:var(--acc);letter-spacing:2px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:400;white-space:nowrap}
+td:first-child{color:var(--tx);font-weight:600}
+.wk{color:var(--warn)}
+.money{font-size:22px;color:var(--acc);text-shadow:0 0 12px rgba(45,212,167,.3)}
+.save{color:var(--warn);font-weight:700}
+.q{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.q:last-child{border:none}
+.q p{flex:1;font-size:13.5px;line-height:1.7}
+.q button{flex-shrink:0;background:none;border:1px solid var(--acc);color:var(--acc);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+.dl{display:inline-block;margin-top:14px;color:var(--acc);border:1px solid var(--acc);border-radius:10px;padding:8px 18px;text-decoration:none;font-size:14px}
+.foot{margin-top:30px;color:var(--dim);font-size:12px;text-align:center;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">出海合规罗盘 EXPORTCOMPASS</span>
+  <h1>二轮车出口<span class="glow">认证雷达 + 落地成本</span></h1>
+  <p class="sub">选目标市场 → 出认证差距清单（缺哪张证海关不放行）+ CBU/SKD/CKD 落地成本区间 + 问 AI 的合规问题清单。<br>认证数据锚定 2025-2026 官方公开要求（欧盟 168/2013 · 沙特 SABER · 阿联酋 ECAS · 印尼 TKDN · 肯尼亚 KEBS · 尼日利亚 SONCAP · 巴西 INMETRO）。</p>
+  <div class="stats">
+    <div class="stat"><b id="st-mkt">8</b><span>锚定市场</span></div>
+    <div class="stat"><b id="st-req">0</b><span>强制认证项（选中市场）</span></div>
+    <div class="stat"><b id="st-wk">0</b><span>合规最短周期(周)</span></div>
+  </div>
+
+  <div class="sec"><h2>① 选目标市场</h2><div class="cards" id="markets"></div></div>
+  <div class="sec"><h2>② 车型动力类型</h2><div class="row" id="vehs"></div></div>
+  <div class="sec"><h2>③ 出口模式与商务参数</h2>
+    <div class="row" id="modes"></div>
+    <div class="row">
+      <span class="lbl">FOB单价$</span><input class="num" id="fob" type="number" value="1200" min="1">
+      <span class="lbl">数量(台)</span><input class="num" id="qty" type="number" value="200" min="1">
+      <span class="lbl">整柜运费$</span><input class="num" id="ctn" type="number" value="3000" min="0">
+    </div>
+  </div>
+
+  <button class="gen" onclick="go()">开始体检</button>
+
+  <div id="out"></div>
+  <div class="foot">出海合规罗盘 ExportCompass · 具体以认证机构与目标国官方最新公告为准 · 数据锚定2025-2026公开信源</div>
+</div>
+<script>
+let META=null,mkt=null,veh='ev',mode='cbu';
+fetch('/api/meta').then(r=>r.json()).then(m=>{META=m;render();});
+function render(){
+  const box=document.getElementById('markets');let i=0;
+  for(const k in META.markets){const r=META.markets[k];
+    const d=document.createElement('div');d.className='mc'+(i==0?' on':'');if(i==0)mkt=k;
+    d.innerHTML='<b>'+r.flag+' '+r.name+'</b><p>'+r.req_count+' 项强制认证</p><div class="tier">'+r.tier+'</div>';
+    d.onclick=()=>{mkt=k;[...box.children].forEach(c=>c.classList.remove('on'));d.classList.add('on');
+      document.getElementById('st-req').textContent=r.req_count;};
+    box.appendChild(d);i++;}
+  document.getElementById('st-req').textContent=META.markets[mkt].req_count;
+  const vb=document.getElementById('vehs');
+  for(const k in META.veh){const c=document.createElement('div');c.className='chip'+(k==veh?' on':'');
+    c.textContent=META.veh[k];
+    c.onclick=()=>{veh=k;[...vb.children].forEach(x=>x.classList.remove('on'));c.classList.add('on');};
+    vb.appendChild(c);}
+  const mb=document.getElementById('modes');
+  for(const k in META.modes){const c=document.createElement('div');c.className='chip'+(k==mode?' on':'');
+    c.textContent=META.modes[k].name+' · '+META.modes[k].units;
+    c.title=META.modes[k].desc;
+    c.onclick=()=>{mode=k;[...mb.children].forEach(x=>x.classList.remove('on'));c.classList.add('on');};
+    mb.appendChild(c);}
+}
+async function go(){
+  const btn=document.querySelector('.gen');btn.textContent='体检中…';btn.disabled=true;
+  try{
+    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({market:mkt,veh:veh,mode:mode,
+        fob:parseFloat(document.getElementById('fob').value||'0'),
+        qty:parseInt(document.getElementById('qty').value||'0'),
+        container_cost:parseFloat(document.getElementById('ctn').value||'0')})});
+    const data=await res.json();
+    if(!data.ok){alert('失败：'+data.error);return;}
+    draw(data);
+  }catch(e){alert('请求失败：'+e);}finally{btn.textContent='开始体检';btn.disabled=false;}
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function draw(d){
+  const mx=d.matrix,c=d.cost;
+  document.getElementById('st-req').textContent=mx.reqs.length;
+  document.getElementById('st-wk').textContent=mx.total_weeks;
+  let h='';
+  h+='<div class="panel"><h3>🧭 市场画像</h3><p style="font-size:14px;line-height:2">'
+   +mx.flag+' <b style="color:var(--acc)">'+esc(mx.market)+'</b>（'+esc(mx.tier)+'）· 车型：'+esc(mx.veh)+'<br>'
+   +'合规最短板：并行推进仍需 <b class="money">'+mx.total_weeks+'</b> 周（最长单项决定上市时间）</p>'
+   +'<a class="dl" href="'+d.download+'" download>⬇ 下载完整报告 .md</a></div>';
+  h+='<div class="panel"><h3>🛂 强制认证清单（缺一不可）</h3><table><tr><th>认证</th><th>主管机构</th><th>要点</th><th>周期</th></tr>';
+  mx.reqs.forEach(r=>{h+='<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td class="wk">'+r[3]+'周</td></tr>';});
+  h+='</table></div>';
+  h+='<div class="panel"><h3>💰 落地成本测算 · '+esc(c.mode)+'</h3>'
+   +'<p style="font-size:13px;color:var(--dim);line-height:1.8">'+esc(c.mode_desc)+'<br>'+esc(mx.duty_note)+'</p>'
+   +'<div style="display:flex;gap:24px;margin:14px 0;flex-wrap:wrap">'
+   +'<div><span class="lbl">关税区间</span><br><b class="money">'+c.duty_lo+'% ~ '+c.duty_hi+'%</b></div>'
+   +'<div><span class="lbl">预计用柜</span><br><b>'+c.ctns+' 柜</b></div>'
+   +'<div><span class="lbl">单台运费分摊</span><br><b>$'+c.freight_unit+'</b></div>'
+   +'</div>'
+   +'<p style="font-size:15px">单台落地成本区间：<span class="money">$'+c.landed_lo+' ~ $'+c.landed_hi+'</span></p>'
+   +(c.vs_cbu_save_pct?'<p class="save">⚡ 对比 CBU 整车模式，每台约省 $'+c.vs_cbu_save_unit+'（-'+c.vs_cbu_save_pct+'%）</p>':'')
+   +'</div>';
+  h+='<div class="panel"><h3>🤖 问 AI 的合规问题清单</h3>';
+  mx.ai_questions.forEach((q,i)=>{h+='<div class="q"><p>'+(i+1)+'. '+esc(q)+'</p><button onclick="copyq(this)">复制</button></div>';});
+  h+='</div>';
+  const out=document.getElementById('out');out.innerHTML=h;out.style.display='block';
+  out.scrollIntoView({behavior:'smooth'});
+}
+function copyq(btn){const p=btn.parentElement.querySelector('p').textContent.replace(/^\d+\.\s/,'');
+  navigator.clipboard.writeText(p).then(()=>{btn.textContent='已复制';setTimeout(()=>btn.textContent='复制',1500);});}
+</script>
+</body>
+</html>
